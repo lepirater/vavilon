@@ -1,5 +1,7 @@
 #ifndef NIMCALC_H
 #define NIMCALC_H
-int mul(int a, int b);
-int divi(int a, int b);
+double add(double a, double b);
+double sub(double a, double b);
+double mul(double a, double b);
+double divi(double a, double b);
 #endif

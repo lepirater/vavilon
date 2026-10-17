@@ -1,2 +1,9 @@
-extern (C) int sq(int a) { return a * a; }
-extern (C) int cube(int a) { return a * a * a; }
+extern (C) double d_part(int op, double a, double b) {
+    switch (op) {
+        case 0: return a + b;
+        case 1: return a - b;
+        case 2: return a * b;
+        case 3: return a / b;
+        default: return 0;
+    }
+}

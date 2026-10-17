@@ -1,5 +1,16 @@
 using Gtk;
 
+[CCode (cname = "rust_part", cheader_filename = "langs/chain.h")]
+extern double rust_part (int op, double a, double b);
+[CCode (cname = "go_part", cheader_filename = "langs/chain.h")]
+extern double go_part (int op, double a, double b);
+[CCode (cname = "zig_part", cheader_filename = "langs/chain.h")]
+extern double zig_part (int op, double a, double b);
+[CCode (cname = "d_part", cheader_filename = "langs/chain.h")]
+extern double d_part (int op, double a, double b);
+[CCode (cname = "nim_part", cheader_filename = "langs/chain.h")]
+extern double nim_part (int op, double a, double b);
+
 [CCode (cname = "FcConfigAppFontAddFile", cheader_filename = "fontconfig/fontconfig.h")]
 extern bool fc_config_app_font_add_file (void* config, string file);
 
@@ -33,6 +44,38 @@ private class Parser : Object {
         this.s = src;
     }
 
+    private double chain(char op, double a, double b) throws CalcError {
+        int operation = op == '+' ? 0 : op == '-' ? 1 : op == '*' ? 2 : 3;
+        double pieces = 6.0;
+        double left = a / pieces;
+        double right = (op == '+' || op == '-') ? b / pieces : b;
+        double[] results = {
+            rust_part(operation, left, right),
+            go_part(operation, left, right),
+            zig_part(operation, left, right),
+            d_part(operation, left, right),
+            nim_part(operation, left, right)
+        };
+        string script = Path.build_filename(Environment.get_current_dir(), "langs", "part.lua");
+        string output;
+        int status;
+        string[] command = {"lua", script, "aggregate", "%c".printf(op),
+                            "%.17g".printf(left), "%.17g".printf(right)};
+        string[] args = new string[command.length + results.length];
+        for (int i = 0; i < command.length; i++) args[i] = command[i];
+        for (int i = 0; i < results.length; i++) args[command.length + i] = "%.17g".printf(results[i]);
+        try {
+            Process.spawn_sync(null, args,
+                null, SpawnFlags.SEARCH_PATH, null,
+                out output, null, out status);
+        } catch (SpawnError e) {
+            throw new CalcError.SYNTAX("Lua chain unavailable: %s".printf(e.message));
+        }
+        if (status != 0)
+            throw new CalcError.SYNTAX("Lua chain failed");
+        return double.parse(output.strip());
+    }
+
     private void skip() {
         while (pos < s.length && s[pos] == ' ')
             pos++;
@@ -56,10 +99,10 @@ private class Parser : Object {
             char c = peek();
             if (c == '+') {
                 pos++;
-                v += term();
+                v = chain('+', v, term());
             } else if (c == '-') {
                 pos++;
-                v -= term();
+                v = chain('-', v, term());
             } else {
                 return v;
             }
@@ -72,13 +115,13 @@ private class Parser : Object {
             char c = peek();
             if (c == '*') {
                 pos++;
-                v *= factor();
+                v = chain('*', v, factor());
             } else if (c == '/') {
                 pos++;
                 double d = factor();
                 if (d == 0)
                     throw new CalcError.DIV_ZERO("division by zero");
-                v /= d;
+                v = chain('/', v, d);
             } else {
                 return v;
             }
@@ -119,12 +162,14 @@ private class Parser : Object {
 
 public class WeirdCalculator : Window {
     private Entry entry;
+    private Label footer;
     private string? font_tmp_path = null;
 
     public WeirdCalculator() {
         title = "vavilon calculator";
         window_position = WindowPosition.CENTER;
         set_default_size(400, 620);
+        set_size_request(400, 620);
         border_width = 18;
         resizable = false;
 	void* gbytes_font = g_resources_lookup_data("/space/brightcat/vavilon/ZXX-Sans.otf", 0, null);
@@ -177,10 +222,12 @@ public class WeirdCalculator : Window {
         box.pack_start(entry, false, false, 0);
         entry.activate.connect(() => on_key("="));
 
-        var grid = new Grid();
-        grid.column_homogeneous = false;
-        grid.row_homogeneous = false;
-        grid.row_spacing = 6;
+         var grid = new Grid();
+         grid.column_homogeneous = false;
+         grid.row_homogeneous = false;
+         grid.halign = Align.CENTER;
+         grid.valign = Align.CENTER;
+         grid.row_spacing = 6;
         grid.column_spacing = 6;
         box.pack_start(grid, true, true, 0);
 
@@ -193,16 +240,24 @@ public class WeirdCalculator : Window {
             { "⌫",   "0",  ".",  "C" }
         };
 
-        for (int r = 0; r < 5; r++) {
+         for (int r = 0; r < 5; r++) {
             for (int c = 0; c < 4; c++) {
                 string k = keys[r, c];
                 var btn = make_button(k, r, c);
                 btn.clicked.connect(() => on_key(k));
                 grid.attach(btn, c, r, 1, 1);
-            }
-        }
+             }
+         }
 
-        string css = """
+         footer = new Label("chain: Vala -> split(6) -> Rust -> Go -> Zig -> D -> Nim -> Lua(sum)");
+         footer.get_style_context().add_class("footer");
+         footer.set_size_request(360, 34);
+         footer.set_line_wrap(true);
+         footer.set_max_width_chars(48);
+         footer.set_justify(Justification.CENTER);
+         box.pack_start(footer, false, false, 0);
+
+         string css = """
             window { background: #3d382c; }
             .banner {
                 color: #e7d7a4;
@@ -350,8 +405,10 @@ public class WeirdCalculator : Window {
                 try {
                     double r = new Parser(t).parse();
                     entry.text = "%.10g".printf(r);
+                    footer.set_text("chain: %s -> split(6) -> Rust -> Go -> Zig -> D -> Nim -> Lua(sum) = %s".printf(t, entry.text));
                 } catch (CalcError e) {
                     entry.text = "ERR: %s".printf(e.message);
+                    footer.set_text("chain stopped: %s".printf(e.message));
                 }
                 break;
             default:

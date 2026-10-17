@@ -3,3 +3,15 @@
 /build/
 resources.c
 calculator.c
+
+# Generated language build artifacts
+/langs/*.o
+/langs/*.a
+/langs/*.so
+/langs/libgopart.h
+
+# Local build and editor files
+*.log
+.DS_Store
+.vscode/
+.idea/
