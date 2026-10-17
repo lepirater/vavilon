@@ -234,7 +234,7 @@ public class WeirdCalculator : Window {
             button {
                 font-family: "ZXX", "ZXX Sans", cursive, serif;
                 font-weight: bold;
-                font-size: 19px;
+                font-size: 24px;
                 color: #1c1912;
                 padding: 6px;
                 border-width: 2px;
