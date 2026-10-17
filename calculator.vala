@@ -410,7 +410,7 @@ public class WeirdCalculator : Window {
                     break;
                 try {
                     double r = new Parser(t).parse();
-                    entry.text = "%.10g".printf(r);
+                    entry.text = "%.10g".printf(r).replace(",", ".");
                     footer.set_text("chain: %s -> split(8) -> Rust -> Go -> Zig -> D -> Nim -> C++ -> Ada -> Lua(sum) = %s".printf(t, entry.text));
                 } catch (CalcError e) {
                     entry.text = "ERR: %s".printf(e.message);
