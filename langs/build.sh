@@ -4,6 +4,8 @@ set -e
 # also now you gay, go kiss your dad or bro
 zig build-lib part.zig -static -O ReleaseFast -femit-bin=libzigpart.a
 dmd -betterC -c part.d -of=dpart.o && echo "d done"
+g++ -c part.cpp -o cpppart.o && echo "cpp done"
+gnatmake -c -gnatp -O2 ada_part.adb && echo "ada done"
 go build -buildmode=c-shared -o libgopart.so part.go && echo "go done"
 nim c --header:nim.h --app:lib --noMain -o:libnimpart.so part.nim && echo "nim done"
 rustc --crate-type=staticlib -o librustpart.a part.rs

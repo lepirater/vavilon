@@ -8,6 +8,7 @@ calculator.c
 /langs/*.o
 /langs/*.a
 /langs/*.so
+/langs/*.ali
 /langs/libgopart.h
 
 # Local build and editor files

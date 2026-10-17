@@ -10,6 +10,10 @@ extern double zig_part (int op, double a, double b);
 extern double d_part (int op, double a, double b);
 [CCode (cname = "nim_part", cheader_filename = "langs/chain.h")]
 extern double nim_part (int op, double a, double b);
+[CCode (cname = "cpp_part", cheader_filename = "langs/chain.h")]
+extern double cpp_part (int op, double a, double b);
+[CCode (cname = "ada_part", cheader_filename = "langs/chain.h")]
+extern double ada_part (int op, double a, double b);
 
 [CCode (cname = "FcConfigAppFontAddFile", cheader_filename = "fontconfig/fontconfig.h")]
 extern bool fc_config_app_font_add_file (void* config, string file);
@@ -46,7 +50,7 @@ private class Parser : Object {
 
     private double chain(char op, double a, double b) throws CalcError {
         int operation = op == '+' ? 0 : op == '-' ? 1 : op == '*' ? 2 : 3;
-        double pieces = 6.0;
+        double pieces = 8.0;
         double left = a / pieces;
         double right = (op == '+' || op == '-') ? b / pieces : b;
         double[] results = {
@@ -54,7 +58,9 @@ private class Parser : Object {
             go_part(operation, left, right),
             zig_part(operation, left, right),
             d_part(operation, left, right),
-            nim_part(operation, left, right)
+            nim_part(operation, left, right),
+            cpp_part(operation, left, right),
+            ada_part(operation, left, right)
         };
         string script = Path.build_filename(Environment.get_current_dir(), "langs", "part.lua");
         string output;
@@ -249,7 +255,7 @@ public class WeirdCalculator : Window {
              }
          }
 
-         footer = new Label("chain: Vala -> split(6) -> Rust -> Go -> Zig -> D -> Nim -> Lua(sum)");
+         footer = new Label("chain: Vala -> split(8) -> Rust -> Go -> Zig -> D -> Nim -> C++ -> Ada -> Lua(sum)");
          footer.get_style_context().add_class("footer");
          footer.set_size_request(360, 34);
          footer.set_line_wrap(true);
@@ -405,7 +411,7 @@ public class WeirdCalculator : Window {
                 try {
                     double r = new Parser(t).parse();
                     entry.text = "%.10g".printf(r);
-                    footer.set_text("chain: %s -> split(6) -> Rust -> Go -> Zig -> D -> Nim -> Lua(sum) = %s".printf(t, entry.text));
+                    footer.set_text("chain: %s -> split(8) -> Rust -> Go -> Zig -> D -> Nim -> C++ -> Ada -> Lua(sum) = %s".printf(t, entry.text));
                 } catch (CalcError e) {
                     entry.text = "ERR: %s".printf(e.message);
                     footer.set_text("chain stopped: %s".printf(e.message));

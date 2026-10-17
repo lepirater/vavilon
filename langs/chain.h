@@ -6,5 +6,7 @@ double go_part(int op, double a, double b);
 double zig_part(int op, double a, double b);
 double d_part(int op, double a, double b);
 double nim_part(int op, double a, double b);
+double cpp_part(int op, double a, double b);
+double ada_part(int op, double a, double b);
 
 #endif
