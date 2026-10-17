@@ -1,0 +1,5 @@
+/calculator
+/*.vala.c
+/build/
+resources.c
+calculator.c
