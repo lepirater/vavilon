@@ -48,9 +48,37 @@ private class Parser : Object {
         this.s = src;
     }
 
+    private double run_script(string[] args, string language) throws CalcError {
+        string output;
+        int status;
+        try {
+            Process.spawn_sync(null, args,
+                null, SpawnFlags.SEARCH_PATH, null,
+                out output, null, out status);
+        } catch (SpawnError e) {
+            throw new CalcError.SYNTAX("%s chain unavailable: %s".printf(language, e.message));
+        }
+        if (status != 0)
+            throw new CalcError.SYNTAX("%s chain failed".printf(language));
+        string text = output.strip();
+        if (text == "")
+            throw new CalcError.SYNTAX("%s chain returned no output".printf(language));
+        double value;
+        if (!double.try_parse(text, out value))
+            throw new CalcError.SYNTAX("%s chain returned invalid output".printf(language));
+        return value;
+    }
+
+    private double perl_piece(char op, double a, double b) throws CalcError {
+        string script = Path.build_filename(Environment.get_current_dir(), "langs", "part.pl");
+        string[] args = {"perl", script, "eval", "%c".printf(op),
+                         "%.17g".printf(a), "%.17g".printf(b)};
+        return run_script(args, "Perl");
+    }
+
     private double chain(char op, double a, double b) throws CalcError {
         int operation = op == '+' ? 0 : op == '-' ? 1 : op == '*' ? 2 : 3;
-        double pieces = 8.0;
+        double pieces = 9.0;
         double left = a / pieces;
         double right = (op == '+' || op == '-') ? b / pieces : b;
         double[] results = {
@@ -60,26 +88,16 @@ private class Parser : Object {
             d_part(operation, left, right),
             nim_part(operation, left, right),
             cpp_part(operation, left, right),
-            ada_part(operation, left, right)
+            ada_part(operation, left, right),
+            perl_piece(op, left, right)
         };
         string script = Path.build_filename(Environment.get_current_dir(), "langs", "part.lua");
-        string output;
-        int status;
         string[] command = {"lua", script, "aggregate", "%c".printf(op),
                             "%.17g".printf(left), "%.17g".printf(right)};
         string[] args = new string[command.length + results.length];
         for (int i = 0; i < command.length; i++) args[i] = command[i];
         for (int i = 0; i < results.length; i++) args[command.length + i] = "%.17g".printf(results[i]);
-        try {
-            Process.spawn_sync(null, args,
-                null, SpawnFlags.SEARCH_PATH, null,
-                out output, null, out status);
-        } catch (SpawnError e) {
-            throw new CalcError.SYNTAX("Lua chain unavailable: %s".printf(e.message));
-        }
-        if (status != 0)
-            throw new CalcError.SYNTAX("Lua chain failed");
-        return double.parse(output.strip());
+        return run_script(args, "Lua");
     }
 
     private void skip() {
@@ -255,7 +273,7 @@ public class WeirdCalculator : Window {
              }
          }
 
-         footer = new Label("chain: Vala -> split(8) -> Rust -> Go -> Zig -> D -> Nim -> C++ -> Ada -> Lua(sum)");
+         footer = new Label("chain: Vala -> split(9) -> Rust -> Go -> Zig -> D -> Nim -> C++ -> Ada -> Perl -> Lua(sum)");
          footer.get_style_context().add_class("footer");
          footer.set_size_request(360, 34);
          footer.set_line_wrap(true);
@@ -411,7 +429,7 @@ public class WeirdCalculator : Window {
                 try {
                     double r = new Parser(t).parse();
                     entry.text = "%.10g".printf(r).replace(",", ".");
-                    footer.set_text("chain: %s -> split(8) -> Rust -> Go -> Zig -> D -> Nim -> C++ -> Ada -> Lua(sum) = %s".printf(t, entry.text));
+                    footer.set_text("chain: %s -> split(9) -> Rust -> Go -> Zig -> D -> Nim -> C++ -> Ada -> Perl -> Lua(sum) = %s".printf(t, entry.text));
                 } catch (CalcError e) {
                     entry.text = "ERR: %s".printf(e.message);
                     footer.set_text("chain stopped: %s".printf(e.message));

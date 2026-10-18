@@ -1,14 +1,14 @@
 # Vavilon Calc
 > "WHAT YOU BUILDED, WHAT YOU DESTROYED?" - Aria (Russian Rock group)
 
-###  10 Langs!
-We use Rust, C, C++, Ada, Vala, Nim, Zig, Go, D, and Lua. Every binary
-operation is split into eight mathematically equivalent pieces. Rust, Go,
-Zig, D, Nim, C++, and Ada each calculate one piece; Lua calculates the eighth
-piece and aggregates all eight before Vala displays the answer.
+###  11 Langs!
+We use Rust, C, C++, Ada, Vala, Nim, Zig, Go, D, Perl, and Lua. Every binary
+operation is split into nine mathematically equivalent pieces. Rust, Go,
+Zig, D, Nim, C++, Ada, and Perl each calculate one piece and Lua calculates the
+ninth piece and aggregates all nine before Vala displays the answer.
 ###  Fast!
 (idk how) runs perfectly
 
 
 # how to build
-Install dmd, go, zig, gcc, gnat, nim, rustc, lua, GTK 3, and run `make`.
+Install dmd, go, zig, gcc, gnat, nim, rustc, lua, perl, GTK 3, and run `make`.
