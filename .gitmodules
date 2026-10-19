@@ -1,0 +1,3 @@
+[submodule "nab"]
+	path = nab
+	url = https://codeberg.org/notafishatall/byte

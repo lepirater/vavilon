@@ -14,6 +14,8 @@ extern double nim_part (int op, double a, double b);
 extern double cpp_part (int op, double a, double b);
 [CCode (cname = "ada_part", cheader_filename = "langs/chain.h")]
 extern double ada_part (int op, double a, double b);
+[CCode (cname = "nab_part", cheader_filename = "langs/chain.h")]
+extern double nab_part (int op, double a, double b);
 
 [CCode (cname = "FcConfigAppFontAddFile", cheader_filename = "fontconfig/fontconfig.h")]
 extern bool fc_config_app_font_add_file (void* config, string file);
@@ -78,7 +80,7 @@ private class Parser : Object {
 
     private double chain(char op, double a, double b) throws CalcError {
         int operation = op == '+' ? 0 : op == '-' ? 1 : op == '*' ? 2 : 3;
-        double pieces = 9.0;
+        double pieces = 10.0;
         double left = a / pieces;
         double right = (op == '+' || op == '-') ? b / pieces : b;
         double[] results = {
@@ -89,7 +91,8 @@ private class Parser : Object {
             nim_part(operation, left, right),
             cpp_part(operation, left, right),
             ada_part(operation, left, right),
-            perl_piece(op, left, right)
+            perl_piece(op, left, right),
+            nab_part(operation, left, right),
         };
         string script = Path.build_filename(Environment.get_current_dir(), "langs", "part.lua");
         string[] command = {"lua", script, "aggregate", "%c".printf(op),

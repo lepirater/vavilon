@@ -1,0 +1,8 @@
+(program
+  (func nab_part (op a b)
+    (var r 0)
+    (if (== op 0) (set! r (+ a b))
+      (if (== op 1) (set! r (- a b))
+        (if (== op 2) (set! r (* a b))
+          (set! r (/ a b)))))
+    (return r)))
