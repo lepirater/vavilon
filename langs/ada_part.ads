@@ -1,8 +1,2 @@
-with Interfaces.C;
-
-package Ada_Part is
-   function Eval (Op : Interfaces.C.int; A, B : Interfaces.C.double)
-      return Interfaces.C.double;
-
-   pragma Export (C, Eval, "ada_part");
-end Ada_Part;
+function Ada_Part (Op : Integer; A, B : Long_Float) return Long_Float;
+pragma Export (C, Ada_Part, "ada_part");

@@ -9,5 +9,7 @@ double nim_part(int op, double a, double b);
 double cpp_part(int op, double a, double b);
 double ada_part(int op, double a, double b);
 double nab_part(int op, double a, double b);
+double nab_unary(const char *fn, double a);
+double nab_binary(const char *fn, double a, double b);
 
 #endif
